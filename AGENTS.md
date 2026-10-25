@@ -3,7 +3,7 @@
 Header-file-style reference for the `coqui-net-acl` crate: every public item with its
 signature, contract and gotchas, so the crate can be used without reading its source. It
 ships inside the package and is self-contained. Development documentation lives with the
-source at <https://github.com/Boriken-Dev/coqui-access>.
+source at <https://github.com/Boriken-Dev/coqui-net-acl>.
 
 | Feature | Adds | Default |
 | --- | --- | --- |
