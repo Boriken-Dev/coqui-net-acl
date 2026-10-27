@@ -31,16 +31,24 @@
 //! source = "any"
 //! ```
 
+#![cfg_attr(docsrs, feature(doc_cfg))]
 #![forbid(unsafe_code)]
 #![warn(missing_docs)]
 #![warn(missing_debug_implementations)]
+#![warn(
+    clippy::std_instead_of_core,
+    clippy::std_instead_of_alloc,
+    clippy::alloc_instead_of_core
+)]
 
-use std::fmt;
-use std::net::{IpAddr, SocketAddr};
-use std::str::FromStr;
+extern crate alloc;
+
+use core::fmt;
+use core::net::{IpAddr, SocketAddr};
+use core::str::FromStr;
 
 /// What a rule does to a connection it matches.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "serde", serde(rename_all = "lowercase"))]
 pub enum Action {
@@ -60,23 +68,24 @@ impl fmt::Display for Action {
     }
 }
 
-/// A malformed network, port range or rule.
+/// A malformed network or port range. The message names what was expected and never quotes
+/// the input.
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct ParseError(String);
+pub struct ParseError(&'static str);
 
 impl fmt::Display for ParseError {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        formatter.write_str(&self.0)
+        formatter.write_str(self.0)
     }
 }
 
-impl std::error::Error for ParseError {}
+impl core::error::Error for ParseError {}
 
 /// An IPv4 or IPv6 network, a single address, or `any`.
 ///
 /// An IPv4-mapped IPv6 address (`::ffff:10.0.0.9`) is the IPv4 address it maps, on both
 /// sides of a comparison.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub enum IpNet {
     /// Every address.
     #[default]
@@ -120,11 +129,7 @@ impl FromStr for IpNet {
         if value.eq_ignore_ascii_case("any") {
             return Ok(Self::Any);
         }
-        let bad = || {
-            ParseError(format!(
-                "{value:?} is not an address, a CIDR network or `any`"
-            ))
-        };
+        let bad = || ParseError("not an address, a CIDR network or `any`");
         let (address, prefix) = match value.split_once('/') {
             Some((address, prefix)) => (address, Some(prefix.parse::<u8>().map_err(|_| bad())?)),
             None => (value, None),
@@ -155,20 +160,20 @@ impl fmt::Display for IpNet {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         match *self {
             Self::Any => formatter.write_str("any"),
-            Self::V4(address, 32) => write!(formatter, "{}", std::net::Ipv4Addr::from(address)),
+            Self::V4(address, 32) => write!(formatter, "{}", core::net::Ipv4Addr::from(address)),
             Self::V4(address, prefix) => {
-                write!(formatter, "{}/{prefix}", std::net::Ipv4Addr::from(address))
+                write!(formatter, "{}/{prefix}", core::net::Ipv4Addr::from(address))
             }
-            Self::V6(address, 128) => write!(formatter, "{}", std::net::Ipv6Addr::from(address)),
+            Self::V6(address, 128) => write!(formatter, "{}", core::net::Ipv6Addr::from(address)),
             Self::V6(address, prefix) => {
-                write!(formatter, "{}/{prefix}", std::net::Ipv6Addr::from(address))
+                write!(formatter, "{}/{prefix}", core::net::Ipv6Addr::from(address))
             }
         }
     }
 }
 
 /// A TCP or UDP port, or an inclusive range of them (`443`, `8000-8100`).
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct PortRange {
     /// First port.
     pub start: u16,
@@ -180,7 +185,7 @@ impl FromStr for PortRange {
     type Err = ParseError;
 
     fn from_str(value: &str) -> Result<Self, Self::Err> {
-        let bad = || ParseError(format!("{value:?} is not a port or a port range"));
+        let bad = || ParseError("not a port or a port range");
         let (start, end) = match value.trim().split_once('-') {
             Some((start, end)) => (start.trim(), end.trim()),
             None => (value.trim(), value.trim()),
@@ -209,7 +214,7 @@ impl fmt::Display for PortRange {
 ///
 /// `source` is matched against the connecting address; `destination`, `port` and `fingerprint`
 /// narrow the rule and are ignored when absent.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Rule {
     /// What to do on a match.
     pub action: Action,
@@ -251,7 +256,8 @@ impl Rule {
 }
 
 /// The result of evaluating a connection.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[non_exhaustive]
 pub enum Outcome {
     /// Let it through.
     Permit,
@@ -501,7 +507,7 @@ mod text {
         port: Option<PortRange>,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         fingerprint: Option<String>,
-        #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+        #[serde(default, skip_serializing_if = "core::ops::Not::not")]
         log: bool,
     }
 
