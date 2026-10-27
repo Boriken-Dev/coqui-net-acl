@@ -110,6 +110,7 @@ cargo clippy --all-targets --all-features -- -D warnings
 cargo +1.89 clippy --all-targets --all-features -- -D warnings
 cargo test --all-features
 RUSTDOCFLAGS="-D warnings" cargo doc --no-deps --all-features
+cargo +nightly-2026-09-21 public-api --all-features -sss --color never | diff -u tools/public-api.txt -
 ```
 
 ### Releasing

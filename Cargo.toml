@@ -10,7 +10,7 @@ repository = "https://github.com/Boriken-Dev/coqui-net-acl"
 homepage = "https://boriken-dev.github.io/coqui-net-acl/"
 keywords = ["acl", "access-control", "firewall", "cidr", "network"]
 categories = ["network-programming"]
-exclude = [".*", "*.local.*"]
+exclude = [".*", "*.local.*", "/tools/"]
 
 [package.metadata.docs.rs]
 all-features = true
