@@ -62,3 +62,13 @@ fn an_action_displays_as_its_text_form() {
     assert_eq!(Action::default(), Action::Deny);
     assert_eq!(Rule::new(Action::Permit, IpNet::Any).action, Action::Permit);
 }
+
+#[test]
+fn a_network_built_with_a_prefix_past_its_width_matches_as_a_host() {
+    let host = IpNet::V4(u32::from_be_bytes([10, 0, 0, 1]), 40);
+    assert!(host.contains([10, 0, 0, 1].into()));
+    assert!(!host.contains([10, 0, 0, 2].into()));
+    let host = IpNet::V6(1, 200);
+    assert!(host.contains(core::net::Ipv6Addr::LOCALHOST.into()));
+    assert!(!host.contains(core::net::Ipv6Addr::from(2u128).into()));
+}

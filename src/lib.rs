@@ -58,9 +58,9 @@ pub enum IpNet {
     /// Every address.
     #[default]
     Any,
-    /// An IPv4 network: address bits and prefix length.
+    /// An IPv4 network: address bits and prefix length. A prefix above 32 matches as 32.
     V4(u32, u8),
-    /// An IPv6 network: address bits and prefix length.
+    /// An IPv6 network: address bits and prefix length. A prefix above 128 matches as 128.
     V6(u128, u8),
 }
 
@@ -77,11 +77,15 @@ impl IpNet {
         match (*self, normalize(address)) {
             (Self::Any, _) => true,
             (Self::V4(network, prefix), IpAddr::V4(address)) => {
-                let mask = u32::MAX.checked_shl(u32::from(32 - prefix)).unwrap_or(0);
+                let mask = u32::MAX
+                    .checked_shl(u32::from(32u8.saturating_sub(prefix)))
+                    .unwrap_or(0);
                 (network & mask) == (u32::from(address) & mask)
             }
             (Self::V6(network, prefix), IpAddr::V6(address)) => {
-                let mask = u128::MAX.checked_shl(u32::from(128 - prefix)).unwrap_or(0);
+                let mask = u128::MAX
+                    .checked_shl(u32::from(128u8.saturating_sub(prefix)))
+                    .unwrap_or(0);
                 (network & mask) == (u128::from(address) & mask)
             }
             _ => false,

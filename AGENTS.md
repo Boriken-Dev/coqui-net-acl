@@ -53,7 +53,8 @@ pub struct Weakening { pub setting: String, pub value: String, pub strict: Strin
 ```
 
 - `IpNet::contains` is true for `Any`, and for an address of the same family whose first
-  `prefix` bits equal the network's. An IPv4-mapped IPv6 address (`::ffff:10.0.0.9`) is the IPv4
+  `prefix` bits equal the network's; a variant built with a prefix above the family's width
+  (`IpNet::V4(bits, 40)`) matches as the full width, a single host. An IPv4-mapped IPv6 address (`::ffff:10.0.0.9`) is the IPv4
   address it maps, in rules and in connections: `"::ffff:10.0.0.0/120"` parses to
   `IpNet::V4(10.0.0.0, 24)`.
 - `IpNet` parsing refuses a prefix above 32 (IPv4) or 128 (IPv6), and anything that is not an
