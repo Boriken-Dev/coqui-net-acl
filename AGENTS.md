@@ -72,6 +72,8 @@ impl Acl {
     pub fn decide(&self, source: SocketAddr, local: SocketAddr) -> AclDecision;
     pub fn decide_peer(&self, source: SocketAddr, local: SocketAddr, fingerprint: &str) -> AclDecision;
     pub fn decide_anonymous(&self, source: SocketAddr, local: SocketAddr) -> AclDecision;
+    pub fn canonicalize_fingerprints<E>(&mut self, canonical: impl FnMut(usize, &str) -> Result<String, E>)
+        -> Result<(), E>;
     pub fn permits_bind(&self, local: SocketAddr) -> BindDecision;
     pub fn weakened(&self) -> Vec<Weakening>;
 }
@@ -95,12 +97,17 @@ pub struct BindDecision { pub permitted: bool, pub rule_index: Option<usize> }
 - `decide` is for accept time, before any byte is read. A first-matching rule that names a
   `fingerprint` cannot be decided yet: `Outcome::Deferred`, and the connection may proceed to
   the handshake (`proceeds()` is true).
-- `decide_peer` finishes the decision with the verified fingerprint, compared
-  case-insensitively against each rule's; a rule with a fingerprint matches only that
+- `decide_peer` finishes the decision with the verified fingerprint, compared as text,
+  ignoring ASCII case, against each rule's (two spellings of one fingerprint do not match); a rule with a fingerprint matches only that
   fingerprint, and one without matches any. Never `Deferred`.
 - `decide_anonymous` decides a peer that proves no identity (plaintext, or TLS without a
   client certificate) by address alone: rules that name a fingerprint are passed over, the
   first other matching rule decides, then the default. Never `Deferred`.
+- `canonicalize_fingerprints` rewrites each rule's fingerprint into the text `canonical`
+  returns (it gets the rule index and the text as written), so rules in any spelling the host
+  parses match the canonical fingerprint it passes to `decide_peer`. All or nothing: on the
+  first `Err` the list is unchanged and that error is returned. The crate knows no
+  fingerprint format; `coqui-peer-tls` does this with `PeerId` when it builds a policy's ACL.
 - `permits_bind` is advisory and enforces nothing. Walking the rules whose `destination` and
   `port` cover `local` (a wildcard address, `0.0.0.0` or `::`, is covered by every rule): a
   `Permit` permits it whatever its source (a routed setup may listen on an address that clients
@@ -145,6 +152,8 @@ example "not a port or a port range") and never quotes the input.
 ## Gotchas
 
 - `Outcome` is `#[non_exhaustive]`: a `match` on it needs a `_` arm.
+- Fingerprints are compared as text: a rule written as grouped base32 never matches a
+  `sha256:<hex>` fingerprint until `canonicalize_fingerprints` rewrites it.
 - A fingerprint rule is only decided by `decide_peer`; calling `decide` alone leaves it
   `Deferred`, which `proceeds()`. A host must call `decide_peer` after the handshake.
 - `permits_bind` passes over a narrower `Deny` (a source other than `any`, or a fingerprint):

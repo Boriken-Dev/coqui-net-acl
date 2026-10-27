@@ -324,6 +324,11 @@ impl Acl {
 
     /// Finishes a decision after the handshake, with the verified peer fingerprint in
     /// canonical text. Never [`Outcome::Deferred`].
+    ///
+    /// A rule's fingerprint and `fingerprint` are compared as text, ignoring ASCII case: two
+    /// spellings of one fingerprint (hex and base32, with and without a prefix) do not match.
+    /// A host whose rules may use other spellings rewrites them with
+    /// [`canonicalize_fingerprints`](Acl::canonicalize_fingerprints) when it builds the list.
     pub fn decide_peer(
         &self,
         source: SocketAddr,
@@ -367,6 +372,33 @@ impl Acl {
             }
         }
         self.by_default()
+    }
+
+    /// Rewrites every rule's fingerprint into the canonical text `canonical` returns, so
+    /// [`decide_peer`](Acl::decide_peer) matches whatever spelling a rule was written in.
+    ///
+    /// `canonical` receives the rule's index and its fingerprint as written. This crate knows
+    /// no fingerprint format; the host that verifies peers supplies it, for example by parsing
+    /// the text into its peer id type and printing that.
+    ///
+    /// # Errors
+    ///
+    /// The first error `canonical` returns. The list is left unchanged then: every rule is
+    /// rewritten, or none is.
+    pub fn canonicalize_fingerprints<E>(
+        &mut self,
+        mut canonical: impl FnMut(usize, &str) -> Result<String, E>,
+    ) -> Result<(), E> {
+        let mut rewritten = Vec::new();
+        for (index, rule) in self.rules.iter().enumerate() {
+            if let Some(text) = &rule.fingerprint {
+                rewritten.push((index, canonical(index, text)?));
+            }
+        }
+        for (index, text) in rewritten {
+            self.rules[index].fingerprint = Some(text);
+        }
+        Ok(())
     }
 
     fn by_default(&self) -> AclDecision {
