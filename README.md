@@ -1,46 +1,61 @@
 # coqui-net-acl
 
-[![Version](https://img.shields.io/badge/version-0.1.0--dev-blue.svg)](https://github.com/Boriken-Dev/coqui-net-acl/blob/main/CHANGELOG.md#unreleased)
-[![Rust version](https://img.shields.io/badge/rust-1.89%2B-blue.svg)](https://github.com/Boriken-Dev/coqui-net-acl/blob/main/Cargo.toml)
+[![Version](https://img.shields.io/crates/v/coqui-net-acl.svg)](https://crates.io/crates/coqui-net-acl)
+[![Rust version](https://img.shields.io/crates/msrv/coqui-net-acl.svg)](https://crates.io/crates/coqui-net-acl)
 [![License: MPL-2.0](https://img.shields.io/badge/license-MPL--2.0-blue.svg)](https://github.com/Boriken-Dev/coqui-net-acl/blob/main/LICENSE)
-[![Docs](https://img.shields.io/badge/docs-latest-blue.svg)](https://boriken-dev.github.io/coqui-net-acl/rust/coqui_net_acl/index.html)
+[![Docs](https://img.shields.io/docsrs/coqui-net-acl)](https://docs.rs/coqui-net-acl)
 [![CI](https://img.shields.io/github/actions/workflow/status/Boriken-Dev/coqui-net-acl/test.yml)](https://github.com/Boriken-Dev/coqui-net-acl/actions/workflows/test.yml)
 
-An **ordered access control list** like a router ACL: rules are read top to bottom, the first
-match wins, and a default action applies when none does (deny, unless you set it). It has no
-TLS dependency and works on any listener, before the first byte is read. See the
-[documentation](https://boriken-dev.github.io/coqui-net-acl/).
+An **ordered, first-match access control list** like a router ACL: rules are read top to
+bottom, the first match wins, and a default action applies when none does (deny, unless you set
+it). It has no TLS dependency and decides on any listener, before the first byte is read. See
+the [documentation](https://boriken-dev.github.io/coqui-net-acl/).
+
+> **Status: alpha.** `0.0.0-alpha.0` is a pre-release: the API may change in any release
+> before 1.0.
 
 ## Features
 
-- **Source and destination rules** — a source network, an optional local address and port.
-- **Two evaluation points** — at accept time from addresses alone, and after a handshake with
-  the verified peer fingerprint.
-- **Router-style listing** — `Display` prints `10 permit 10.6.0.0/16`, ...
-- **Plain text form** with the `serde` feature.
+- **Source and destination rules**: a source network, and optionally the local address and
+  port connected to.
+- **Two evaluation points**: at accept time from the addresses alone, and after a handshake
+  with the verified peer fingerprint.
+- **Router-style listing**: `Display` prints `10 permit 10.6.0.0/16`, numbered in steps of ten.
+- **A plain text form** (TOML, JSON) with the `serde` feature.
+- No dependencies in a default build, no `unsafe` code, no process-wide state.
 
 ## Installation
 
 ```bash
-cargo add coqui-net-acl --git https://github.com/Boriken-Dev/coqui-net-acl
+cargo add coqui-net-acl@0.0.0-alpha.0
 ```
 
-| Feature | Adds | Needed for |
-| --- | --- | --- |
-| `serde` | `serde` | reading and writing an ACL as TOML or JSON |
+| Feature | Adds | Needed for | Default |
+| --- | --- | --- | --- |
+| `serde` | `serde` | reading and writing an ACL in its text form | off |
+
+Rust 1.89 or later.
 
 ## Quick start
 
-```rust,ignore
-use coqui_net_acl::{Acl, Action, IpNet, Outcome, Rule};
+```rust
+use coqui_net_acl::{Acl, Action, Outcome, Rule};
 
-let mut acl = Acl::default();                       // no rules, default deny
-acl.push(Rule::new(Action::Permit, "10.6.0.0/16".parse::<IpNet>().unwrap()));
-let decision = acl.decide("10.6.1.2:5000".parse().unwrap(), "10.6.0.1:443".parse().unwrap());
+let mut acl = Acl::default(); // no rules, default deny
+acl.push(Rule::new(Action::Permit, "10.6.0.0/16".parse()?));
+
+let decision = acl.decide("10.6.1.2:5000".parse()?, "10.6.0.1:443".parse()?);
 assert_eq!(decision.outcome, Outcome::Permit);
+assert_eq!(decision.rule_index, Some(0));
+
+let outside = acl.decide("192.0.2.7:5000".parse()?, "10.6.0.1:443".parse()?);
+assert_eq!(outside.outcome, Outcome::Deny); // the default
+assert_eq!(acl.to_string(), "10 permit 10.6.0.0/16\ndefault deny\n");
+# Ok::<(), Box<dyn std::error::Error>>(())
 ```
 
-In TOML (`serde` feature):
+With the `serde` feature the same list reads from TOML or JSON, through your own `toml` or
+`serde_json`:
 
 ```toml
 default = "deny"
@@ -58,27 +73,47 @@ source = "any"
 
 ## API overview
 
+Everything is at the crate root.
+
 | Item | Purpose |
 | --- | --- |
-| `Acl` | `rules`, `default`; `push`, `prepend`, `decide`, `decide_peer`, `permits_bind`, `weakened`. |
-| `Rule` | `action`, `source`, `destination?`, `port?`, `fingerprint?`, `log`. |
-| `IpNet`, `PortRange` | Parsed networks (`any`, a host, CIDR) and ports. |
+| `Acl` | The rules and the default; `push`, `prepend`, `decide`, `decide_peer`, `permits_bind`, `weakened`. |
+| `Rule` | `action`, `source`, and the optional `destination`, `port` and `fingerprint`; a `log` hint. |
+| `IpNet`, `PortRange` | Networks (`any`, a host, CIDR) and ports, parsed from and printed as text. |
 | `Outcome`, `AclDecision`, `BindDecision` | What was decided, and by which rule. |
+| `Action`, `Weakening`, `ParseError` | `permit` / `deny`; a setting looser than strict; a malformed network or port. |
+
+## Evaluation
+
+1. `Acl::decide` runs at accept time, from the connecting and local socket addresses alone. A
+   rule that names a peer fingerprint cannot be decided yet: when it is the first to match, the
+   outcome is `Outcome::Deferred` and the connection proceeds to its handshake.
+2. `Acl::decide_peer` runs after the handshake with the verified fingerprint, which finishes
+   the decision; it is never deferred.
+
+An IPv4-mapped IPv6 address (`::ffff:10.0.0.9`) is the IPv4 address it maps, in rules and in
+connections. `Acl::permits_bind` is advisory: whether any rule could permit traffic to a local
+address. Nothing enforces it; what to listen on is the host's choice. `Acl::weakened` lists a
+`permit` default, as data, so a host can report it.
 
 ## Development
 
 ```bash
 cargo fmt --all --check
-cargo test --all-features
 cargo clippy --all-targets --all-features -- -D warnings
+cargo +1.89 clippy --all-targets --all-features -- -D warnings
+cargo test --all-features
+RUSTDOCFLAGS="-D warnings" cargo doc --no-deps --all-features
 ```
 
 ### Releasing
 
 This project follows [Semantic Versioning](https://semver.org/) and keeps a
 [`CHANGELOG.md`](https://github.com/Boriken-Dev/coqui-net-acl/blob/main/CHANGELOG.md).
-Pushing a tag matching `v*` triggers the release workflow of the repository.
+Pushing a tag matching `v*` runs the release workflow: the tests and a strict documentation
+build gate a GitHub release, marked as a pre-release when the version has a `-` suffix. The
+crate is published to crates.io with `cargo publish` by a maintainer.
 
 ## License
 
-MPL-2.0 — see [LICENSE](https://github.com/Boriken-Dev/coqui-net-acl/blob/main/LICENSE).
+MPL-2.0; see [LICENSE](https://github.com/Boriken-Dev/coqui-net-acl/blob/main/LICENSE).

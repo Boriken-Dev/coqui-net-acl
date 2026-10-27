@@ -1,36 +1,4 @@
-//! Ordered access control lists, evaluated top to bottom, first match wins.
-//!
-//! An [`Acl`] is a list of [`Rule`]s and a default [`Action`] that applies when no rule
-//! matches. The default of the default is [`Action::Deny`], the implicit deny at the end of
-//! a router ACL; a deployment that wants otherwise sets it, and [`Acl::weakened`] reports it.
-//!
-//! It has no TLS dependency and works on any listener. There are two points of
-//! evaluation:
-//!
-//! 1. [`Acl::decide`] at accept time, from the connecting and local socket addresses alone,
-//!    before any byte is read. A rule that names a peer fingerprint cannot be decided yet:
-//!    when such a rule is the first to match, the outcome is [`Outcome::Deferred`] and the
-//!    connection proceeds to the handshake.
-//! 2. [`Acl::decide_peer`] after the handshake, with the verified fingerprint, which
-//!    finishes the decision and is never deferred.
-//!
-//! [`Acl::permits_bind`] is an advisory helper: whether any rule could permit traffic to a
-//! local address. Nothing enforces it; what to listen on is the host's choice.
-//!
-//! With the `serde` feature an ACL reads and writes a plain text form:
-//!
-//! ```toml
-//! default = "deny"
-//!
-//! [[rule]]
-//! action = "permit"
-//! source = "10.6.0.0/16"
-//!
-//! [[rule]]
-//! action = "deny"
-//! source = "any"
-//! ```
-
+#![doc = include_str!("../README.md")]
 #![cfg_attr(docsrs, feature(doc_cfg))]
 #![forbid(unsafe_code)]
 #![warn(missing_docs)]
