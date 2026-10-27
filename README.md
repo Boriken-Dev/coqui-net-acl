@@ -77,7 +77,7 @@ Everything is at the crate root.
 
 | Item | Purpose |
 | --- | --- |
-| `Acl` | The rules and the default; `push`, `prepend`, `decide`, `decide_peer`, `permits_bind`, `weakened`. |
+| `Acl` | The rules and the default; `push`, `prepend`, `decide`, `decide_peer`, `decide_anonymous`, `permits_bind`, `weakened`. |
 | `Rule` | `action`, `source`, and the optional `destination`, `port` and `fingerprint`; a `log` hint. |
 | `IpNet`, `PortRange` | Networks (`any`, a host, CIDR) and ports, parsed from and printed as text. |
 | `Outcome`, `AclDecision`, `BindDecision` | What was decided, and by which rule. |
@@ -90,6 +90,9 @@ Everything is at the crate root.
    outcome is `Outcome::Deferred` and the connection proceeds to its handshake.
 2. `Acl::decide_peer` runs after the handshake with the verified fingerprint, which finishes
    the decision; it is never deferred.
+
+A peer that proves no identity (plaintext, or TLS without a client certificate) is decided by
+`Acl::decide_anonymous`: rules that name a fingerprint cannot match it and are passed over.
 
 An IPv4-mapped IPv6 address (`::ffff:10.0.0.9`) is the IPv4 address it maps, in rules and in
 connections. `Acl::permits_bind` is advisory: whether any rule could permit traffic to a local

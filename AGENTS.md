@@ -71,6 +71,7 @@ impl Acl {
     pub fn prepend(&mut self, rule: Rule);       // insert at the top
     pub fn decide(&self, source: SocketAddr, local: SocketAddr) -> AclDecision;
     pub fn decide_peer(&self, source: SocketAddr, local: SocketAddr, fingerprint: &str) -> AclDecision;
+    pub fn decide_anonymous(&self, source: SocketAddr, local: SocketAddr) -> AclDecision;
     pub fn permits_bind(&self, local: SocketAddr) -> BindDecision;
     pub fn weakened(&self) -> Vec<Weakening>;
 }
@@ -97,6 +98,9 @@ pub struct BindDecision { pub permitted: bool, pub rule_index: Option<usize> }
 - `decide_peer` finishes the decision with the verified fingerprint, compared
   case-insensitively against each rule's; a rule with a fingerprint matches only that
   fingerprint, and one without matches any. Never `Deferred`.
+- `decide_anonymous` decides a peer that proves no identity (plaintext, or TLS without a
+  client certificate) by address alone: rules that name a fingerprint are passed over, the
+  first other matching rule decides, then the default. Never `Deferred`.
 - `permits_bind` is advisory and enforces nothing. Walking the rules whose `destination` and
   `port` cover `local` (a wildcard address, `0.0.0.0` or `::`, is covered by every rule): a
   `Permit` permits it whatever its source (a routed setup may listen on an address that clients

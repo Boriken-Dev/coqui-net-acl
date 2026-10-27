@@ -349,6 +349,26 @@ impl Acl {
         self.by_default()
     }
 
+    /// Decides a peer that proves no identity (a plaintext connection, or TLS with no client
+    /// certificate) from its addresses alone. A rule that names a fingerprint can never match
+    /// such a peer and is passed over; the first other rule that matches decides, then the
+    /// default. Never [`Outcome::Deferred`].
+    pub fn decide_anonymous(&self, source: SocketAddr, local: SocketAddr) -> AclDecision {
+        for (index, rule) in self.rules.iter().enumerate() {
+            if rule.fingerprint.is_none() && rule.matches_addresses(source, local) {
+                return AclDecision {
+                    outcome: match rule.action {
+                        Action::Permit => Outcome::Permit,
+                        Action::Deny => Outcome::Deny,
+                    },
+                    rule_index: Some(index),
+                    log: rule.log,
+                };
+            }
+        }
+        self.by_default()
+    }
+
     fn by_default(&self) -> AclDecision {
         AclDecision {
             outcome: match self.default {
