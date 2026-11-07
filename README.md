@@ -77,11 +77,11 @@ Everything is at the crate root.
 
 | Item | Purpose |
 | --- | --- |
-| `Acl` | The rules and the default; `push`, `prepend`, `decide`, `decide_peer`, `decide_anonymous`, `canonicalize_fingerprints`, `permits_bind`, `weakened`. |
+| `Acl` | The rules and the default; `push`, `prepend`, `decide`, `decide_peer`, `decide_anonymous`, `canonicalize_fingerprints`, `permits_bind`, `non_defaults`. |
 | `Rule` | `action`, `source`, and the optional `destination`, `port` and `fingerprint`; a `log` hint. |
 | `IpNet`, `PortRange` | Networks (`any`, a host, CIDR) and ports, parsed from and printed as text. |
 | `Outcome`, `AclDecision`, `BindDecision` | What was decided, and by which rule. |
-| `Action`, `Weakening`, `ParseError` | `permit` / `deny`; a setting looser than strict; a malformed network or port. |
+| `Action`, `NonDefault`, `ParseError` | `permit` / `deny`; a setting that differs from its default; a malformed network or port. |
 
 ## Evaluation
 
@@ -99,7 +99,7 @@ list, refusing any that does not parse.
 
 An IPv4-mapped IPv6 address (`::ffff:10.0.0.9`) is the IPv4 address it maps, in rules and in
 connections. `Acl::permits_bind` is advisory: whether any rule could permit traffic to a local
-address. Nothing enforces it; what to listen on is the host's choice. `Acl::weakened` lists a
+address. Nothing enforces it; what to listen on is the host's choice. `Acl::non_defaults` lists a
 `permit` default, as data, so a host can report it.
 
 ## Development

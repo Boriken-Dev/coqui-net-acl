@@ -7,7 +7,7 @@ source at <https://github.com/Boriken-Dev/coqui-net-acl>.
 
 | Feature | Adds | Needed for | Default |
 | --- | --- | --- | --- |
-| `serde` | `serde` (`derive`, `std`): `Serialize`/`Deserialize` for `Acl`, `Rule`, `Action`, `IpNet`, `PortRange`, `Weakening` | the text form | off |
+| `serde` | `serde` (`derive`, `std`): `Serialize`/`Deserialize` for `Acl`, `Rule`, `Action`, `IpNet`, `PortRange`, `NonDefault` | the text form | off |
 
 MSRV Rust 1.89. A default build has no dependencies. Version `0.0.0-alpha.0` is a pre-release;
 the API may change in any release before 1.0.
@@ -49,7 +49,7 @@ impl Rule { pub fn new(action: Action, source: IpNet) -> Rule; }   // no destina
 pub struct Acl { pub rules: Vec<Rule>, pub default: Action }    // Default: no rules, Deny
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct Weakening { pub setting: String, pub value: String, pub strict: String }
+pub struct NonDefault { pub setting: String, pub value: String, pub default: String }   // Weakening: a deprecated alias for one release, its field `strict` now `default`
 ```
 
 - `IpNet::contains` is true for `Any`, and for an address of the same family whose first
@@ -75,7 +75,7 @@ impl Acl {
     pub fn canonicalize_fingerprints<E>(&mut self, canonical: impl FnMut(usize, &str) -> Result<String, E>)
         -> Result<(), E>;
     pub fn permits_bind(&self, local: SocketAddr) -> BindDecision;
-    pub fn weakened(&self) -> Vec<Weakening>;
+    pub fn non_defaults(&self) -> Vec<NonDefault>;   // weakened(): deprecated alias for one release
 }
 impl Display for Acl {}
 
@@ -114,8 +114,8 @@ pub struct BindDecision { pub permitted: bool, pub rule_index: Option<usize> }
   on other networks reach), a `Deny` with source `any` and no fingerprint refuses it, and any
   other rule is passed over. With none, `permitted` is `default == Permit` and `rule_index`
   `None`.
-- `weakened` lists only a `permit` default: `Weakening { setting: "acl.default", value:
-  "permit", strict: "deny" }`; empty otherwise.
+- `non_defaults` lists only a `permit` default: `NonDefault { setting: "acl.default", value:
+  "permit", default: "deny" }`; empty otherwise.
 - `Display` prints a router-style listing, one rule per line numbered in steps of ten, then the
   default: `10 permit 10.6.0.0/16 destination 10.6.20.5 port 7000-7100 fingerprint sha256:ab
   log`, `default deny`, each line ending in `\n`.
@@ -136,7 +136,7 @@ log = true                  # optional; default false
 
 `Acl`, `Rule`, `IpNet` and `PortRange` serialize as above, any serde format; absent optional
 keys are skipped when written. Unknown keys are errors, and so are networks or ports that do
-not parse. `Weakening` serializes as a plain struct of its three fields. Inside a
+not parse. `NonDefault` serializes as a plain struct of its three fields. Inside a
 `coqui-peer-tls` `Policy` the same table is `[acl]` with `[[acl.rule]]` entries.
 
 ## Errors

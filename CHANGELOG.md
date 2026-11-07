@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+
+- **Breaking: a weakening is a non-default setting.** `Weakening { setting, value, strict }` is now
+  `NonDefault { setting, value, default }` and `Acl::weakened` is `Acl::non_defaults`. `Weakening` (an
+  alias of `NonDefault`, so a struct literal naming `strict` no longer compiles) and `weakened` stay one
+  release as deprecated aliases.
+
 ## [0.0.0-alpha.0] - 2026-10-27
 
 The first pre-release, published to crates.io. The API may change in any release before 1.0.
