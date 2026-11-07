@@ -1,7 +1,7 @@
 //! The value types: thread-safe, and their text forms round-trip.
 
 use coqui_net_acl::{
-    Acl, AclDecision, Action, BindDecision, IpNet, Outcome, ParseError, PortRange, Rule, Weakening,
+    Acl, AclDecision, Action, BindDecision, IpNet, NonDefault, Outcome, ParseError, PortRange, Rule,
 };
 
 fn assert_send_sync<T: Send + Sync>() {}
@@ -17,7 +17,7 @@ fn every_public_type_is_send_and_sync() {
     assert_send_sync::<ParseError>();
     assert_send_sync::<PortRange>();
     assert_send_sync::<Rule>();
-    assert_send_sync::<Weakening>();
+    assert_send_sync::<NonDefault>();
 }
 
 #[test]

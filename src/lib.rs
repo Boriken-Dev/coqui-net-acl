@@ -276,17 +276,24 @@ pub struct Acl {
     pub default: Action,
 }
 
-/// A setting looser than the strictest, as plain data.
+/// A setting that differs from its default, as plain data.
 #[derive(Debug, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub struct Weakening {
+pub struct NonDefault {
     /// The setting's name.
     pub setting: String,
     /// Its current value.
     pub value: String,
-    /// The strict value.
-    pub strict: String,
+    /// The default value.
+    pub default: String,
 }
+
+/// The old name of [`NonDefault`], whose `strict` field is now `default`.
+#[deprecated(
+    since = "0.0.0",
+    note = "renamed to `NonDefault`; its `strict` field is now `default`"
+)]
+pub type Weakening = NonDefault;
 
 impl Acl {
     /// Adds a rule at the end, before the default.
@@ -450,17 +457,23 @@ impl Acl {
         }
     }
 
-    /// The settings looser than a default deployment, as plain data: a `permit` default.
-    pub fn weakened(&self) -> Vec<Weakening> {
+    /// The settings that differ from the default, as plain data: a `permit` default.
+    pub fn non_defaults(&self) -> Vec<NonDefault> {
         if self.default == Action::Permit {
-            vec![Weakening {
+            vec![NonDefault {
                 setting: "acl.default".to_owned(),
                 value: "permit".to_owned(),
-                strict: "deny".to_owned(),
+                default: "deny".to_owned(),
             }]
         } else {
             Vec::new()
         }
+    }
+
+    /// The old name of [`non_defaults`](Acl::non_defaults).
+    #[deprecated(since = "0.0.0", note = "renamed to `non_defaults`")]
+    pub fn weakened(&self) -> Vec<NonDefault> {
+        self.non_defaults()
     }
 }
 
@@ -824,7 +837,7 @@ mod tests {
     }
 
     #[test]
-    fn the_listing_reads_like_a_router_and_weakening_is_plain_data() {
+    fn the_listing_reads_like_a_router_and_a_non_default_is_plain_data() {
         let mut named = Rule::new(Action::Permit, net("10.6.0.0/16"));
         named.port = Some("443".parse().unwrap());
         named.log = true;
@@ -836,14 +849,14 @@ mod tests {
             list.to_string(),
             "10 permit 10.6.0.0/16 port 443 log\n20 deny any\ndefault deny\n"
         );
-        assert!(list.weakened().is_empty());
+        assert!(list.non_defaults().is_empty());
         let open = Acl {
             default: Action::Permit,
             ..Acl::default()
         };
-        assert_eq!(open.weakened()[0].setting, "acl.default");
-        assert_eq!(open.weakened()[0].value, "permit");
-        assert_eq!(open.weakened()[0].strict, "deny");
+        assert_eq!(open.non_defaults()[0].setting, "acl.default");
+        assert_eq!(open.non_defaults()[0].value, "permit");
+        assert_eq!(open.non_defaults()[0].default, "deny");
     }
 
     #[cfg(feature = "serde")]
