@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- Feature `guatiao`: `Acl`, `Rule` and `Action` derive guatiao's `ToValue`, `FromValue` and `Schema`, in the same
+  document shape as the serde text form (`default`, `[[rule]]`), so a configuration type that holds an `Acl`
+  derives its own without a conversion module.
+
 ### Changed
 
 - **Breaking: a weakening is a non-default setting.** `Weakening { setting, value, strict }` is now

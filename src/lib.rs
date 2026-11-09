@@ -19,6 +19,11 @@ use core::str::FromStr;
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "serde", serde(rename_all = "lowercase"))]
+#[cfg_attr(
+    feature = "guatiao",
+    derive(guatiao::ToValue, guatiao::FromValue, guatiao::Schema),
+    map(rename_all = "lowercase")
+)]
 pub enum Action {
     /// Let the connection through.
     Permit,
@@ -186,22 +191,34 @@ impl fmt::Display for PortRange {
 ///
 /// `source` is matched against the connecting address; `destination`, `port` and `fingerprint`
 /// narrow the rule and are ignored when absent.
+///
+/// With the `guatiao` feature a rule is a guatiao value: `source`, `destination` and `port` are
+/// their text forms, and every key but `action` is optional.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[cfg_attr(
+    feature = "guatiao",
+    derive(guatiao::ToValue, guatiao::FromValue, guatiao::Schema),
+    map(deny_unknown_fields)
+)]
 pub struct Rule {
     /// What to do on a match.
     pub action: Action,
     /// The connecting address.
+    #[cfg_attr(feature = "guatiao", map(default, as_text))]
     pub source: IpNet,
     /// The local address connected to (a host with several, or a routed setup). `None` is
     /// any.
+    #[cfg_attr(feature = "guatiao", map(as_text))]
     pub destination: Option<IpNet>,
     /// The local port.
+    #[cfg_attr(feature = "guatiao", map(as_text))]
     pub port: Option<PortRange>,
     /// The peer's certificate fingerprint in canonical text (for example
     /// `sha256:<hex>`), compared case-insensitively. A rule with one is decided only after
     /// the handshake.
     pub fingerprint: Option<String>,
     /// A hint, returned in the decision, that a host should log a match.
+    #[cfg_attr(feature = "guatiao", map(default))]
     pub log: bool,
 }
 
@@ -268,11 +285,21 @@ pub struct BindDecision {
 }
 
 /// An ordered rule list and the action when none matches.
+///
+/// With the `guatiao` feature a list is a guatiao value shaped like its serde text form: a
+/// `default` action and the rules under the key `rule`.
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
+#[cfg_attr(
+    feature = "guatiao",
+    derive(guatiao::ToValue, guatiao::FromValue, guatiao::Schema),
+    map(deny_unknown_fields)
+)]
 pub struct Acl {
     /// Rules, top to bottom.
+    #[cfg_attr(feature = "guatiao", map(default, rename = "rule"))]
     pub rules: Vec<Rule>,
     /// The action when no rule matches. [`Action::Deny`] unless set.
+    #[cfg_attr(feature = "guatiao", map(default))]
     pub default: Action,
 }
 

@@ -8,6 +8,7 @@ source at <https://github.com/Boriken-Dev/coqui-net-acl>.
 | Feature | Adds | Needed for | Default |
 | --- | --- | --- | --- |
 | `serde` | `serde` (`derive`, `std`): `Serialize`/`Deserialize` for `Acl`, `Rule`, `Action`, `IpNet`, `PortRange`, `NonDefault` | the text form | off |
+| `guatiao` | `guatiao` (`derive`): `ToValue`, `FromValue` and `Schema` for `Acl`, `Rule`, `Action` | the value form | off |
 
 MSRV Rust 1.89. A default build has no dependencies. Version `0.0.0-alpha.0` is a pre-release;
 the API may change in any release before 1.0.
@@ -138,6 +139,14 @@ log = true                  # optional; default false
 keys are skipped when written. Unknown keys are errors, and so are networks or ports that do
 not parse. `NonDefault` serializes as a plain struct of its three fields. Inside a
 `coqui-peer-tls` `Policy` the same table is `[acl]` with `[[acl.rule]]` entries.
+
+## Value form (`guatiao` feature)
+
+`Acl`, `Rule` and `Action` derive guatiao's `ToValue`, `FromValue` and `Schema`, so a host reads them with
+`guatiao-serde` (TOML, JSON, YAML) and describes them with a schema. The document is the one above:
+`default`, then the rules under the key `rule`; `Rule`'s `source`, `destination` and `port` are their text
+forms, and every key of a rule but `action` is optional. Unknown keys are refused. `IpNet` and `PortRange`
+carry no impl of their own: they cross as text wherever a field holds them (`#[map(as_text)]`).
 
 ## Errors
 

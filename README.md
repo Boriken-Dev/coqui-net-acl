@@ -21,7 +21,7 @@ the [documentation](https://boriken-dev.github.io/coqui-net-acl/).
 - **Two evaluation points**: at accept time from the addresses alone, and after a handshake
   with the verified peer fingerprint.
 - **Router-style listing**: `Display` prints `10 permit 10.6.0.0/16`, numbered in steps of ten.
-- **A plain text form** (TOML, JSON) with the `serde` feature.
+- **A plain text form** (TOML, JSON) with the `serde` feature, and as a guatiao value with a schema with the `guatiao` feature.
 - No dependencies in a default build, no `unsafe` code, no process-wide state.
 
 ## Installation
@@ -33,6 +33,7 @@ cargo add coqui-net-acl@0.0.0-alpha.0
 | Feature | Adds | Needed for | Default |
 | --- | --- | --- | --- |
 | `serde` | `serde` | reading and writing an ACL in its text form | off |
+| `guatiao` | `guatiao` (`derive`) | `Acl`, `Rule` and `Action` as guatiao values with a schema | off |
 
 Rust 1.89 or later.
 
