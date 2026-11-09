@@ -315,13 +315,6 @@ pub struct NonDefault {
     pub default: String,
 }
 
-/// The old name of [`NonDefault`], whose `strict` field is now `default`.
-#[deprecated(
-    since = "0.0.0",
-    note = "renamed to `NonDefault`; its `strict` field is now `default`"
-)]
-pub type Weakening = NonDefault;
-
 impl Acl {
     /// Adds a rule at the end, before the default.
     pub fn push(&mut self, rule: Rule) {
@@ -495,12 +488,6 @@ impl Acl {
         } else {
             Vec::new()
         }
-    }
-
-    /// The old name of [`non_defaults`](Acl::non_defaults).
-    #[deprecated(since = "0.0.0", note = "renamed to `non_defaults`")]
-    pub fn weakened(&self) -> Vec<NonDefault> {
-        self.non_defaults()
     }
 }
 

@@ -50,7 +50,7 @@ impl Rule { pub fn new(action: Action, source: IpNet) -> Rule; }   // no destina
 pub struct Acl { pub rules: Vec<Rule>, pub default: Action }    // Default: no rules, Deny
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct NonDefault { pub setting: String, pub value: String, pub default: String }   // Weakening: a deprecated alias for one release, its field `strict` now `default`
+pub struct NonDefault { pub setting: String, pub value: String, pub default: String }
 ```
 
 - `IpNet::contains` is true for `Any`, and for an address of the same family whose first
@@ -76,7 +76,7 @@ impl Acl {
     pub fn canonicalize_fingerprints<E>(&mut self, canonical: impl FnMut(usize, &str) -> Result<String, E>)
         -> Result<(), E>;
     pub fn permits_bind(&self, local: SocketAddr) -> BindDecision;
-    pub fn non_defaults(&self) -> Vec<NonDefault>;   // weakened(): deprecated alias for one release
+    pub fn non_defaults(&self) -> Vec<NonDefault>;
 }
 impl Display for Acl {}
 

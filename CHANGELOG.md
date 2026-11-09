@@ -16,9 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Changed
 
 - **Breaking: a weakening is a non-default setting.** `Weakening { setting, value, strict }` is now
-  `NonDefault { setting, value, default }` and `Acl::weakened` is `Acl::non_defaults`. `Weakening` (an
-  alias of `NonDefault`, so a struct literal naming `strict` no longer compiles) and `weakened` stay one
-  release as deprecated aliases.
+  `NonDefault { setting, value, default }` and `Acl::weakened` is `Acl::non_defaults`. The old names are
+  gone; nothing keeps an alias before a release without a pre-release tag.
 
 ## [0.0.0-alpha.0] - 2026-10-27
 
