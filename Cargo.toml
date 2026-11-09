@@ -28,10 +28,10 @@ guatiao = ["dep:guatiao"]
 # The text form, behind the `serde` feature.
 serde = { version = "1", default-features = false, features = ["derive", "std"], optional = true }
 # The value form of the list, behind `guatiao`; alpha, by revision, as the family pins it.
-guatiao = { git = "https://github.com/Boriken-Dev/guatiao", rev = "fe9efd3797ec5e178e1f9381db0e65146d2c866e", default-features = false, features = ["derive"], optional = true }
+guatiao = { git = "https://github.com/Boriken-Dev/guatiao", rev = "03e1cac8be06715a8037f45f1610c5894eea0b5b", default-features = false, features = ["derive"], optional = true }
 
 [dev-dependencies]
 # Reads the text form in tests.
 toml = "0.9"
 # The text forms of the guatiao value in tests.
-guatiao-serde = { git = "https://github.com/Boriken-Dev/guatiao", rev = "fe9efd3797ec5e178e1f9381db0e65146d2c866e", default-features = false, features = ["json", "toml", "yaml"] }
+guatiao-serde = { git = "https://github.com/Boriken-Dev/guatiao", rev = "03e1cac8be06715a8037f45f1610c5894eea0b5b", default-features = false, features = ["json", "toml", "yaml"] }
