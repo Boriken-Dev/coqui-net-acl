@@ -143,6 +143,11 @@ then the rules under the key `rule`; `Rule`'s `source`, `destination` and `port`
 but `action` is optional. Unknown keys are refused. `IpNet` and `PortRange` carry no impl of their own: they cross as text
 wherever a field holds them (`#[map(as_text)]`).
 
+The derive also writes two public setter traits, `AclSetters` (`rules`, `default`) and `RuleSetters` (`action`, `source`,
+`destination`, `port`, `fingerprint`, `log`), one `fn field(self, impl Into<FieldType>) -> Self` per setting, for a
+builder that holds an `Acl` or a `Rule` (`coqui_builder::builder::Holds`). A setter takes the Rust field name; the key of
+`rules` is `rule`.
+
 What differs from the defaults is `coqui_builder::non_defaults(&acl)`: a `permit` default is the line `default`
 (`Action(permit)` against `Action(deny)`), and a list with rules lists each as one place, `rule[0]`, `rule[1]`.
 

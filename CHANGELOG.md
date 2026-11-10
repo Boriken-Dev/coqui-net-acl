@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   document shape as the serde text form (`default`, `[[rule]]`). A list is read with
   `toml::from_str::<Partial<Acl>>(text)?.build()`, and `coqui_builder::non_defaults(&acl)` lists what differs from the
   defaults. The dependency is `coqui-builder` without its default features.
+- `AclSetters` and `RuleSetters` (feature `describe`): the setter traits the derive writes for `Acl` and `Rule`.
 
 ### Removed
 
