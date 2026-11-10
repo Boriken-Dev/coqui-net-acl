@@ -27,10 +27,10 @@ describe = ["dep:coqui-builder"]
 # The text form, behind the `serde` feature.
 serde = { version = "1", default-features = false, features = ["derive", "std"], optional = true }
 # The description of the list, behind `describe`; alpha, by revision, as the family pins it.
-coqui-builder = { git = "https://github.com/Boriken-Dev/coqui-builder", rev = "14aca5d74ef435543f9258dd0a29fab7bb596eab", default-features = false, features = ["derive"], optional = true }
+coqui-builder = { git = "https://github.com/Boriken-Dev/coqui-builder", rev = "c1875f8276bd6366c38e9133fdb1181a0ffbaaad", default-features = false, features = ["derive"], optional = true }
 
 [dev-dependencies]
 # Reads the text form in tests.
 toml = "0.9"
 # Reads the list into a `Partial` in tests.
-coqui-builder = { git = "https://github.com/Boriken-Dev/coqui-builder", rev = "14aca5d74ef435543f9258dd0a29fab7bb596eab", default-features = false, features = ["derive", "serde"] }
+coqui-builder = { git = "https://github.com/Boriken-Dev/coqui-builder", rev = "c1875f8276bd6366c38e9133fdb1181a0ffbaaad", default-features = false, features = ["derive", "serde"] }

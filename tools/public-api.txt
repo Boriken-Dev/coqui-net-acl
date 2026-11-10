@@ -85,6 +85,6 @@ pub trait coqui_net_acl::RuleSetters: coqui_builder::builder::Holds<coqui_net_ac
 pub fn coqui_net_acl::RuleSetters::action(self, impl core::convert::Into<coqui_net_acl::Action>) -> Self
 pub fn coqui_net_acl::RuleSetters::destination(self, impl core::convert::Into<core::option::Option<coqui_net_acl::IpNet>>) -> Self
 pub fn coqui_net_acl::RuleSetters::fingerprint(self, impl core::convert::Into<core::option::Option<alloc::string::String>>) -> Self
-pub fn coqui_net_acl::RuleSetters::log(self, impl core::convert::Into<bool>) -> Self
+pub fn coqui_net_acl::RuleSetters::log(self, bool) -> Self
 pub fn coqui_net_acl::RuleSetters::port(self, impl core::convert::Into<core::option::Option<coqui_net_acl::PortRange>>) -> Self
 pub fn coqui_net_acl::RuleSetters::source(self, impl core::convert::Into<coqui_net_acl::IpNet>) -> Self

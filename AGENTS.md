@@ -144,7 +144,7 @@ but `action` is optional. Unknown keys are refused. `IpNet` and `PortRange` carr
 wherever a field holds them (`#[map(as_text)]`).
 
 The derive also writes two public setter traits, `AclSetters` (`rules`, `default`) and `RuleSetters` (`action`, `source`,
-`destination`, `port`, `fingerprint`, `log`), one `fn field(self, impl Into<FieldType>) -> Self` per setting, for a
+`destination`, `port`, `fingerprint`, `log`), one `fn field(self, impl Into<FieldType>) -> Self` per setting (`log` takes a `bool` itself), for a
 builder that holds an `Acl` or a `Rule` (`coqui_builder::builder::Holds`). A setter takes the Rust field name; the key of
 `rules` is `rule`.
 
