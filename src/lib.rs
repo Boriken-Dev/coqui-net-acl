@@ -1,5 +1,6 @@
 #![doc = include_str!("../README.md")]
 #![cfg_attr(docsrs, feature(doc_cfg))]
+#![no_std]
 #![forbid(unsafe_code)]
 #![warn(missing_docs)]
 #![warn(missing_debug_implementations)]
@@ -10,7 +11,11 @@
 )]
 
 extern crate alloc;
+#[cfg(feature = "serde")]
+extern crate std;
 
+use alloc::string::String;
+use alloc::vec::Vec;
 use core::fmt;
 use core::net::{IpAddr, SocketAddr};
 use core::str::FromStr;
@@ -497,6 +502,8 @@ impl fmt::Display for Acl {
 
 #[cfg(feature = "serde")]
 mod text {
+    use alloc::string::String;
+    use alloc::vec::Vec;
     use serde::de::Error as _;
     use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
@@ -598,6 +605,9 @@ mod text {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use alloc::borrow::ToOwned as _;
+    use alloc::string::ToString as _;
+    use alloc::vec;
 
     fn at(source: &str, local: &str) -> (SocketAddr, SocketAddr) {
         (source.parse().unwrap(), local.parse().unwrap())

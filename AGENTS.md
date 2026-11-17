@@ -15,7 +15,7 @@ the API may change in any release before 1.0.
 
 Everything is at the crate root, `coqui_net_acl::*`; there are no public modules.
 
-No `unsafe` code (`#![forbid(unsafe_code)]`), and no process-wide state. The crate decides
+`#![no_std]` with `alloc`; `std` only behind `serde`. No `unsafe` code (`#![forbid(unsafe_code)]`), and no process-wide state. The crate decides
 nothing about what is public or private: a host chooses what to listen on and writes the rules.
 
 ## Values (`coqui_net_acl`)

@@ -25,6 +25,7 @@ without tracking down every past contributor. You keep the copyright in everythi
 cargo fmt --all --check
 cargo clippy --all-targets --all-features -- -D warnings
 cargo clippy --no-default-features -- -D warnings
+cargo check --target thumbv7em-none-eabi --no-default-features
 cargo test --all-features
 RUSTDOCFLAGS="-D warnings" cargo doc --no-deps --all-features
 ```

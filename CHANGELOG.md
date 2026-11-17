@@ -15,6 +15,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   defaults. The dependency is `coqui-builder` without its default features.
 - `AclSetters` and `RuleSetters` (feature `describe`): the setter traits the derive writes for `Acl` and `Rule`. `RuleSetters::log` takes a `bool` itself; the other setters take `impl Into<FieldType>`.
 
+### Changed
+
+- The crate is `#![no_std]` with `alloc`, and builds for a bare target (`thumbv7em-none-eabi`) without default features; `std` is used only through the `serde` feature. No API change.
+
 ### Removed
 
 - `Weakening` and `Acl::weakened` (of the first pre-release), and `NonDefault` and `Acl::non_defaults`: use `coqui_builder::non_defaults(&acl)` (feature `describe`). Its lines name

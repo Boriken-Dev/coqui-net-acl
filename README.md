@@ -109,6 +109,7 @@ address. Nothing enforces it; what to listen on is the host's choice. With the `
 cargo fmt --all --check
 cargo clippy --all-targets --all-features -- -D warnings
 cargo +1.89 clippy --all-targets --all-features -- -D warnings
+cargo check --target thumbv7em-none-eabi --no-default-features
 cargo test --all-features
 RUSTDOCFLAGS="-D warnings" cargo doc --no-deps --all-features
 cargo +nightly-2026-09-21 public-api --all-features -sss --color never | diff -u tools/public-api.txt -
